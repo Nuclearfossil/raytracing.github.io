@@ -13,7 +13,20 @@
 
 #include <iostream>
 #include <iomanip>
-#include <math.h>
+
+
+double f(double r2) {
+    // auto x = std::cos(2*pi*r1) * 2 * std::sqrt(r2*(1-r2));
+    // auto y = std::sin(2*pi*r1) * 2 * std::sqrt(r2*(1-r2));
+    auto z = 1 - r2;
+    double cos_theta = z;
+    return cos_theta*cos_theta*cos_theta;
+}
+
+
+double pdf() {
+    return 1.0 / (2.0*pi);
+}
 
 
 int main() {
@@ -21,16 +34,11 @@ int main() {
 
     auto sum = 0.0;
     for (int i = 0; i < N; i++) {
-        auto r1 = random_double();
         auto r2 = random_double();
-        auto x = cos(2*pi*r1)*2*sqrt(r2*(1-r2));
-        auto y = sin(2*pi*r1)*2*sqrt(r2*(1-r2));
-        auto z = 1 - r2;
-
-        sum += z*z*z / (1.0/(2.0*pi));
+        sum += f(r2) / pdf();
     }
 
     std::cout << std::fixed << std::setprecision(12);
-    std::cout << "PI/2 = " << pi/2 << '\n';
-    std::cout << "Estimate = " << sum/N << '\n';
+    std::cout << "PI/2 = " << pi / 2.0 << '\n';
+    std::cout << "Estimate = " << sum / N << '\n';
 }
