@@ -11,6 +11,7 @@
 // along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //==============================================================================================
 
+
 class vec3 {
   public:
     double e[3];
@@ -121,16 +122,13 @@ inline vec3 random_in_unit_disk() {
     }
 }
 
-inline vec3 random_in_unit_sphere() {
+inline vec3 random_unit_vector() {
     while (true) {
         auto p = vec3::random(-1,1);
-        if (p.length_squared() < 1)
-            return p;
+        auto lensq = p.length_squared();
+        if (1e-160 < lensq && lensq <= 1.0)
+            return p / sqrt(lensq);
     }
-}
-
-inline vec3 random_unit_vector() {
-    return unit_vector(random_in_unit_sphere());
 }
 
 inline vec3 random_on_hemisphere(const vec3& normal) {

@@ -11,9 +11,7 @@
 // along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //==============================================================================================
 
-#include "rtweekend.h"
-
-class hit_record;
+#include "hittable.h"
 
 
 class material {

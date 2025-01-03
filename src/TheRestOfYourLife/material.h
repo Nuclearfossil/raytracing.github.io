@@ -11,12 +11,9 @@
 // along with this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 //==============================================================================================
 
-#include "rtweekend.h"
-
+#include "hittable.h"
 #include "pdf.h"
 #include "texture.h"
-
-class hit_record;
 
 
 class scatter_record {

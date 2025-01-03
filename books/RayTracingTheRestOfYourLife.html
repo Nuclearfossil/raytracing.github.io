@@ -8,7 +8,7 @@
                                **Ray Tracing: The Rest of Your Life**
                    [Peter Shirley][], [Trevor David Black][], [Steve Hollasch][]
                                                 <br>
-                                     Version 4.0.0, 2024-07-26
+                                     Version 4.0.1, 2024-08-31
                                                 <br>
                       Copyright 2018-2024 Peter Shirley. All rights reserved.
 
@@ -60,14 +60,14 @@ Let’s start with one of the simplest Monte Carlo programs. If you're not famil
 programs, then it'll be good to pause and catch you up. There are two kinds of randomized
 algorithms: Monte Carlo and Las Vegas. Randomized algorithms can be found everywhere in computer
 graphics, so getting a decent foundation isn't a bad idea. A randomized algorithm uses some amount
-of randomness in its computation. A Las Vegas (LV) random algorithm always produces the correct
-result, whereas a Monte Carlo (MC) algorithm _may_ produce a correct result--and frequently gets it
-wrong! But for especially complicated problems such as ray tracing, we may not place as huge a
-priority on being perfectly exact as on getting an answer in a reasonable amount of time. LV
-algorithms will eventually arrive at the correct result, but we can't make too many guarantees on
-how long it will take to get there. The classic example of an LV algorithm is the _quicksort_
-sorting algorithm. The quicksort algorithm will always complete with a fully sorted list, but, the
-time it takes to complete is random. Another good example of an LV algorithm is the code that we use
+of randomness in its computation. A Las Vegas random algorithm always produces the correct result,
+whereas a Monte Carlo algorithm _may_ produce a correct result--and frequently gets it wrong! But
+for especially complicated problems such as ray tracing, we may not place as huge a priority on
+being perfectly exact as on getting an answer in a reasonable amount of time. Las Vegas algorithms
+will eventually arrive at the correct result, but we can't make too many guarantees on how long it
+will take to get there. The classic example of a Las Vegas algorithm is the _quicksort_ sorting
+algorithm. The quicksort algorithm will always complete with a fully sorted list, but, the time it
+takes to complete is random. Another good example of a Las Vegas algorithm is the code that we use
 to pick a random point in a unit sphere:
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++
@@ -83,18 +83,23 @@ to pick a random point in a unit sphere:
 
 This code will always eventually arrive at a random point in the unit sphere, but we can't say
 beforehand how long it'll take. It may take only 1 iteration, it may take 2, 3, 4, or even longer.
-Whereas, an MC program will give a statistical estimate of an answer, and this estimate will get
-more and more accurate the longer you run it. Which means that at a certain point, we can just
+Whereas, a Monte Carlo program will give a statistical estimate of an answer, and this estimate will
+get more and more accurate the longer you run it. Which means that at a certain point, we can just
 decide that the answer is accurate _enough_ and call it quits. This basic characteristic of simple
-programs producing noisy but ever-better answers is what MC is all about, and is especially good for
-applications like graphics where great accuracy is not needed.
+programs producing noisy but ever-better answers is what Monte Carlo is all about, and is especially
+good for applications like graphics where great accuracy is not needed.
 
 
 Estimating Pi
 --------------
 The canonical example of a Monte Carlo algorithm is estimating $\pi$, so let's do that. There are
-many ways to estimate $\pi$, with the Buffon Needle problem being a classic case study. We’ll do a
-variation inspired by this method. Suppose you have a circle inscribed inside a square:
+many ways to estimate $\pi$, with _Buffon's needle problem_ being a classic case study. In Buffon's
+needle problem, one is presented with a floor made of parallel strips of floor board, each of the
+same width. If a needle is randomly dropped onto the floor, what is the probability that the needle
+will lie across two boards? (You can find more information on this problem with a simple Internet
+search.)
+
+We’ll do a variation inspired by this method. Suppose you have a circle inscribed inside a square:
 
   ![Figure [circ-square]: Estimating $\pi$ with a circle inside a square
   ](../images/fig-3.01-circ-square.jpg)
@@ -448,8 +453,8 @@ want to stratify.
 
 One Dimensional Monte Carlo Integration
 ====================================================================================================
-Our Buffon Needle example is a way of calculating $\pi$ by solving for the ratio of the area of the
-circle and the area of the circumscribed square:
+Our variation of Buffon's needle problem is a way of calculating $\pi$ by solving for the ratio of
+the area of the circle and the area of the circumscribed square:
 
     $$ \frac{\operatorname{area}(\mathit{circle})}{\operatorname{area}(\mathit{square})}
        = \frac{\pi}{4}
@@ -516,14 +521,28 @@ If we assume that we have all of the following:
 If we assume all of the above, then we could solve for the arithmetic mean--the average--of the list
 $Y$ with the following:
 
-    $$ \operatorname{average}(Y) = E[Y] = \frac{1}{N} \sum_{i=0}^{N-1} y_i $$
+    $$ \operatorname{average}(Y_i) = E[Y] = \frac{1}{N} \sum_{i=0}^{N-1} y_i $$
     $$ = \frac{1}{N} \sum_{i=0}^{N-1} f(x_i) $$
     $$ = E[F(X)] $$
 
-Where $E[Y]$ is referred to as the _expected value of_ $Y$. If the values of $x_i$ are chosen
-randomly from a continuous interval $[a,b]$ such that $ a \leq x_i \leq b $ for all values of $i$,
-then $E[F(X)]$ will approximate the average of the continuous function $f(x')$ over the the same
-interval $ a \leq x' \leq b $.
+Where $E[Y]$ is referred to as the _expected value of_ $Y$.
+
+Note the subtle difference between _average value_ and _expected value_ here:
+
+- A set may have many different subsets of selections from that set. Each subset has an _average
+  value_, which is the sum of all selections divided by the count of selections. Note that a given
+  item may occur zero times, one times, or multiple times in a subset.
+
+- A set has only one _expected value_: the sum of _all_ members of a set, divided by the total
+  number of items in that set. Put another way, the _expected value_ is the _average value_ of _all_
+  members of a set.
+
+It is important to note that as the number of random samples from a set increases, the average value
+of a set will converge to the expected value.
+
+If the values of $x_i$ are chosen randomly from a continuous interval $[a,b]$ such that $ a \leq x_i
+\leq b $ for all values of $i$, then $E[F(X)]$ will approximate the average of the continuous
+function $f(x')$ over the the same interval $ a \leq x' \leq b $.
 
     $$ E[f(x') | a \leq x' \leq b] \approx E[F(X) | X =
         \{\small x_i | a \leq x_i \leq b \normalsize \} ] $$
@@ -1552,15 +1571,20 @@ randomly generate.
 For a Lambertian surface we already implicitly implemented this formula for the special case where
 $pScatter(\, \ldots \,)$ is a cosine density. The $\operatorname{pScatter}(\, \ldots \,)$ of a
 Lambertian surface is proportional to $\cos(\theta_o)$, where $\theta_o$ is the angle relative to
-the surface normal. Let's solve for $C$ once more:
+the surface normal ($\theta_o \in [0,\pi]$). An angle of $0$ indicates an outgoing direction in the
+same direction as the surface normal, and an angle of $\pi$ indicates an outgoing direction exactly
+opposite the normal vector.
+
+Let's solve for $C$ once more:
 
     $$ \operatorname{pScatter}(\mathbf{x}, \omega_i, \omega_o, \lambda) = C \cdot \cos(\theta_o) $$
 
 All two dimensional PDFs need to integrate to one over the whole surface (remember that
-$\operatorname{pScatter}$ is a PDF). We set $\operatorname{pScatter}(\theta_o < 0) = 0$ so that we
-don't scatter below the horizon.
+$\operatorname{pScatter}$ is a PDF). We set
+$\operatorname{pScatter}(\frac{\pi}{2} < \theta_o \le \pi) = 0$ so that we don't scatter below the
+horizon. Given this, we only need to integrate $\theta \in [0, \frac{\pi}{2}]$.
 
-    $$ 1 = \int_{0}^{2 \pi} \int_{0}^{\pi / 2} C \cdot \cos(\theta) dA $$
+    $$ 1 = \int_{\phi = 0}^{2 \pi} \int_{\theta = 0}^\frac{\pi}{2} C \cdot \cos(\theta) dA $$
 
 To integrate over the hemisphere, remember that in spherical coordinates:
 
@@ -1568,7 +1592,8 @@ To integrate over the hemisphere, remember that in spherical coordinates:
 
 So:
 
-    $$ 1 = C \cdot \int_{0}^{2 \pi} \int_{0}^{\pi / 2} \cos(\theta) \sin(\theta) d\theta d\phi $$
+    $$ 1 = C \cdot \int_0^{2 \pi} \int_0^\frac{\pi}{2}
+           \cos(\theta) \sin(\theta) d\theta d\phi $$
     $$ 1 = C \cdot 2 \pi \frac{1}{2} $$
     $$ 1 = C \cdot \pi $$
     $$ C = \frac{1}{\pi} $$
@@ -2250,8 +2275,6 @@ class because it won't really be more complicated than utility functions:
     #ifndef ONB_H
     #define ONB_H
 
-    #include "rtweekend.h"
-
     class onb {
       public:
         onb(const vec3& n) {
@@ -2283,15 +2306,11 @@ class because it won't really be more complicated than utility functions:
 We can rewrite our Lambertian material using this to get:
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++
-    #include "rtweekend.h"
-
-
+    #include "hittable.h"
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ highlight
     #include "onb.h"
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++
     #include "texture.h"
-
-    class hit_record;
 
     class material {
       public:
@@ -2471,9 +2490,9 @@ But first, let's quickly update the `isotropic` material:
 Sampling Lights Directly
 ====================================================================================================
 The problem with sampling uniformly over all directions is that lights are no more likely to be
-sampled than any arbirary or unimportant direction. We could use shadow rays to solve for the direct
-lighting at any given point. Instead, I’ll just use a PDF that sends more rays to the light. We can
-then turn around and change that PDF to send more rays in whatever direction we want.
+sampled than any arbitrary or unimportant direction. We could use shadow rays to solve for the
+direct lighting at any given point. Instead, I’ll just use a PDF that sends more rays to the light.
+We can then turn around and change that PDF to send more rays in whatever direction we want.
 
 It’s really easy to pick a random direction toward the light; just pick a random point on the light
 and send a ray in that direction. But we'll need to know the PDF, $p(\omega)$, so that we're not
@@ -2706,8 +2725,6 @@ works, and for `pdf` this implies:
     #ifndef PDF_H
     #define PDF_H
 
-    #include "rtweekend.h"
-
     #include "onb.h"
 
 
@@ -2776,8 +2793,6 @@ Next, let’s try a cosine density:
 We can try this cosine PDF in the `ray_color()` function:
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++
-    #include "rtweekend.h"
-
     #include "hittable.h"
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ highlight
     #include "pdf.h"
@@ -2860,10 +2875,6 @@ This yields an exactly matching result so all we’ve done so far is move some c
 Sampling Directions towards a Hittable
 ---------------------------------------
 Now we can try sampling directions toward a `hittable`, like the light.
-
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++
-    #include "rtweekend.h"
-
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ highlight
     #include "hittable_list.h"
@@ -3326,12 +3337,9 @@ this ray is diffuse or specular. Fortunately, we have decided that we should onl
 We can redesign `material` and stuff all the new arguments into a class like we did for `hittable`:
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++
-    #include "rtweekend.h"
-
+    #include "hittable.h"
     #include "onb.h"
     #include "texture.h"
-
-    class hit_record;
 
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ highlight
@@ -3366,17 +3374,13 @@ We can redesign `material` and stuff all the new arguments into a class like we 
 The `lambertian` material becomes simpler:
 
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++
-    #include "rtweekend.h"
-
-
+    #include "hittable.h"
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ delete
     #include "onb.h"
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ highlight
     #include "pdf.h"
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++
     #include "texture.h"
-
-    class hit_record;
 
     ...
 
@@ -3749,14 +3753,15 @@ The sphere class needs the two PDF-related functions:
             if (!this->hit(ray(origin, direction), interval(0.001, infinity), rec))
                 return 0;
 
-            auto cos_theta_max = std::sqrt(1 - radius*radius/(center1 - origin).length_squared());
+            auto dist_squared = (center.at(0) - origin).length_squared();
+            auto cos_theta_max = std::sqrt(1 - radius*radius/dist_squared);
             auto solid_angle = 2*pi*(1-cos_theta_max);
 
             return  1 / solid_angle;
         }
 
         vec3 random(const point3& origin) const override {
-            vec3 direction = center1 - origin;
+            vec3 direction = center.at(0) - origin;
             auto distance_squared = direction.length_squared();
             onb uvw(direction);
             return uvw.transform(random_to_sphere(radius, distance_squared));
@@ -3795,7 +3800,7 @@ We can first try just sampling the sphere rather than the light:
         world.add(make_shared<quad>(point3(213,554,227), vec3(130,0,0), vec3(0,0,105), light));
 
 
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ highlight
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ highlight
         // Box
         shared_ptr<hittable> box1 = box(point3(0,0,0), point3(165,330,165), white);
         box1 = make_shared<rotate_y>(box1, 15);
@@ -3805,7 +3810,7 @@ We can first try just sampling the sphere rather than the light:
         // Glass Sphere
         auto glass = make_shared<dielectric>(1.5);
         world.add(make_shared<sphere>(point3(190,90,190), 90, glass));
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++
 
         // Light Sources
         auto empty_material = shared_ptr<material>();
@@ -4010,8 +4015,8 @@ Basic Data
   - **Title (series)**: “Ray Tracing in One Weekend Series”
   - **Title (book)**: “Ray Tracing: The Rest of Your Life”
   - **Author**: Peter Shirley, Trevor David Black, Steve Hollasch
-  - **Version/Edition**: vXX.XX.XX
-  - **Date**: 20XX-XX-XX
+  - **Version/Edition**: v4.0.1
+  - **Date**: 2024-08-30
   - **URL (series)**: <https://raytracing.github.io/>
   - **URL (book)**: <https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html>
 
@@ -4038,7 +4043,7 @@ Snippets
        title = {Ray Tracing: The Rest of Your Life},
        author = {Peter Shirley, Trevor David Black, Steve Hollasch},
        year = {2024},
-       month = {July},
+       month = {August},
        note = {\small \texttt{https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html}},
        url = {https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html}
     }
@@ -4054,7 +4059,7 @@ Snippets
        title = {Ray Tracing: The Rest of Your Life},
        author = {Peter Shirley, Trevor David Black, Steve Hollasch},
        year = {2024},
-       month = {July},
+       month = {August},
        url = {https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html}
     }
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
